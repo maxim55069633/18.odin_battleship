@@ -1,6 +1,6 @@
 .background {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 2fr 1fr 2fr;
   grid-template-rows: 5fr 2fr;
 }
 
@@ -17,9 +17,22 @@
   gap: 30px;
 }
 
-.area_player_B {
+.prompt {
   grid-column-start: 2;
   grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 2;
+
+  font-size: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.area_player_B {
+  grid-column-start: 3;
+  grid-column-end: 4;
   grid-row-start: 1;
   grid-row-end: 2;
 
@@ -33,7 +46,7 @@
 .info {
   margin: 20px;
   grid-column-start: 1;
-  grid-column-end: 3;
+  grid-column-end: 4;
   grid-row-start: 2;
   grid-row-end: 3;
 }
@@ -46,7 +59,7 @@
 }
 
 .board_square {
-  border: 1px solid black;
+  border: 1px solid rgba(0, 0, 0, 0.2);
   height: 25px;
   width: 25px;
 
@@ -54,6 +67,23 @@
   align-items: center;
   justify-content: center;
 }
+
+.ship_square_missed {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.ship_square_hidden {
+  border: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+.ship_square_shot {
+  color: red;
+  border: 1px solid #f00;
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+/* row and column title  */
 
 .board_row1::before {
   content: "1";
@@ -107,60 +137,70 @@
 }
 
 .board_column1::before {
+  color: black;
   content: "A";
   position: absolute;
   top: -25px;
 }
 
 .board_column2::before {
+  color: black;
   content: "B";
   position: absolute;
   top: -25px;
 }
 
 .board_column3::before {
+  color: black;
   content: "C";
   position: absolute;
   top: -25px;
 }
 
 .board_column4::before {
+  color: black;
   content: "D";
   position: absolute;
   top: -25px;
 }
 
 .board_column5::before {
+  color: black;
   content: "E";
   position: absolute;
   top: -25px;
 }
 
 .board_column6::before {
+  color: black;
   content: "F";
   position: absolute;
   top: -25px;
 }
 
 .board_column7::before {
+  color: black;
   content: "G";
   position: absolute;
   top: -25px;
 }
 
 .board_column8::before {
+  color: black;
   content: "H";
   position: absolute;
   top: -25px;
 }
 
 .board_column9::before {
+  color: black;
   content: "I";
   position: absolute;
   top: -25px;
 }
 
 .board_column10::before {
+  color: black;
   content: "J";
   position: absolute;
   top: -25px;

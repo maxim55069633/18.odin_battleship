@@ -48,7 +48,9 @@ const Gameboard = () => {
     ) {
       board_condition[(attack_square.x - 1) * 10 + attack_square.y - 1] = 3;
       remaining_ships--;
-    } else
+    } else if (
+      board_condition[(attack_square.x - 1) * 10 + attack_square.y - 1] == 0
+    )
       board_condition[(attack_square.x - 1) * 10 + attack_square.y - 1] = 1;
   };
 
@@ -88,6 +90,9 @@ if (typeof module === "object") {
   module.exports = { Square, Ship, Gameboard, Player };
 } else {
   const Game = (() => {
+    // turn_record can determine who should shoot on the current turn.
+    let turn_record = 0;
+
     // Create two Gameboards with predetermined coordinates and two Players(Humans and Computer)
     const Gameboard_A = Gameboard();
     const A_all_ship_squares = [
@@ -139,52 +144,180 @@ if (typeof module === "object") {
     ];
     Gameboard_B.place_ships(B_all_ship_squares);
 
-    const player_human = Player("Kai");
-    const player_computer = Player();
+    // gameboard
+    const display_your_board = (your_grid) => {
+      const board_div = document.querySelector(".your_grid");
+      board_div.innerHTML = "";
+      for (let i = 1; i <= 10; i++) {
+        const board_row = document.createElement("div");
+        for (let j = 1; j <= 10; j++) {
+          const board_square = document.createElement("div");
+          board_square.setAttribute("id", `${i}your${j}`);
+          board_square.classList.add("board_square");
+          board_square.classList.add("your_square");
+          if (i == 1) {
+            board_square.classList.add(`board_column${j}`);
+          }
+
+          if (your_grid.board_condition[(i - 1) * 10 + j - 1] == 1) {
+            board_square.textContent = "ꞏ";
+            board_square.classList.add("ship_square_missed");
+          } else if (your_grid.board_condition[(i - 1) * 10 + j - 1] == 2)
+            board_square.classList.add("ship_square_hidden");
+          else if (your_grid.board_condition[(i - 1) * 10 + j - 1] == 3) {
+            board_square.textContent = "X";
+            board_square.classList.remove("ship_square_hidden");
+            board_square.classList.add("ship_square_shot");
+          }
+
+          board_row.appendChild(board_square);
+        }
+        board_row.classList.add("board_row");
+        board_row.classList.add(`board_row${i}`);
+
+        board_div.appendChild(board_row);
+      }
+    };
+
+    const display_oppo_board = (oppo_grid) => {
+      const board_div = document.querySelector(".oppo_grid");
+      board_div.innerHTML = "";
+      for (let i = 1; i <= 10; i++) {
+        const board_row = document.createElement("div");
+        for (let j = 1; j <= 10; j++) {
+          const board_square = document.createElement("div");
+          board_square.setAttribute("id", `${i}oppo${j}`);
+          board_square.classList.add("board_square");
+          board_square.classList.add("oppo_square");
+          if (i == 1) {
+            board_square.classList.add(`board_column${j}`);
+          }
+
+          if (oppo_grid.board_condition[(i - 1) * 10 + j - 1] == 1) {
+            board_square.textContent = "ꞏ";
+            board_square.classList.add("ship_square_missed");
+          } else if (oppo_grid.board_condition[(i - 1) * 10 + j - 1] == 3) {
+            board_square.textContent = "X";
+            board_square.classList.remove("ship_square_hidden");
+            board_square.classList.add("ship_square_shot");
+          }
+
+          board_row.appendChild(board_square);
+        }
+        board_row.classList.add("board_row");
+        board_row.classList.add(`board_row${i}`);
+
+        board_div.appendChild(board_row);
+      }
+    };
+
+    const player_your = Player("Your");
+    const player_oppo = Player();
     // player_human's gameboard is A, computer (or another player)'s gameboard is B.
 
-    // gameboard
-    const display_your_board = () => {
-      const board_div = document.querySelector(".your_grid");
-      for (let i = 1; i <= 10; i++) {
-        const board_row = document.createElement("div");
-        for (let j = 1; j <= 10; j++) {
-          const board_square = document.createElement("div");
-          board_square.classList.add("board_square");
-          if (i == 1) {
-            board_square.classList.add(`board_column${j}`);
-          }
-          board_row.appendChild(board_square);
-        }
-        board_row.classList.add("board_row");
-        board_row.classList.add(`board_row${i}`);
+    function log_your_square(e) {
+      console.log(turn_record);
+      const prompt = document.querySelector(".prompt");
 
-        board_div.appendChild(board_row);
+      const clicked_square = Square(
+        parseInt(e.target.id.split("your")[0]),
+        parseInt(e.target.id.split("your")[1])
+      );
+
+      // 0 - blank, 1 - missed, 2 - hidden, 3 - shot
+      const original_condition =
+        Gameboard_A.board_condition[
+          (clicked_square.x - 1) * 10 + clicked_square.y - 1
+        ];
+      Gameboard_A.receiveAttack(clicked_square);
+      display_your_board(Gameboard_A);
+
+      //After one click, cancel all the listener, wait for the other player's next move.
+      const all_your_squares = document.querySelectorAll(".your_square");
+      all_your_squares.forEach((element) => {
+        element.removeEventListener("click", log_your_square);
+      });
+
+      // if the clicked square has already been clicked, try another one.
+      if (original_condition == 1 || original_condition == 3) {
+        prompt.textContent = `It's ${player_oppo.name} turn`;
+        your_board_listener();
+      } else {
+        prompt.textContent = `It's ${player_your.name} turn`;
+        oppo_board_listener();
       }
+    }
+
+    const your_board_listener = () => {
+      const all_your_squares = document.querySelectorAll(".your_square");
+      all_your_squares.forEach((element) => {
+        element.addEventListener("click", log_your_square);
+      });
     };
 
-    const display_oppo_board = () => {
-      const board_div = document.querySelector(".oppo_grid");
-      for (let i = 1; i <= 10; i++) {
-        const board_row = document.createElement("div");
-        for (let j = 1; j <= 10; j++) {
-          const board_square = document.createElement("div");
-          board_square.classList.add("board_square");
-          if (i == 1) {
-            board_square.classList.add(`board_column${j}`);
-          }
-          board_row.appendChild(board_square);
-        }
-        board_row.classList.add("board_row");
-        board_row.classList.add(`board_row${i}`);
+    function log_oppo_square(e) {
+      console.log(turn_record);
+      const prompt = document.querySelector(".prompt");
 
-        board_div.appendChild(board_row);
+      const clicked_square = Square(
+        parseInt(e.target.id.split("oppo")[0]),
+        parseInt(e.target.id.split("oppo")[1])
+      );
+
+      // 0 - blank, 1 - missed, 2 - hidden, 3 - shot
+      const original_condition =
+        Gameboard_B.board_condition[
+          (clicked_square.x - 1) * 10 + clicked_square.y - 1
+        ];
+      Gameboard_B.receiveAttack(clicked_square);
+      display_oppo_board(Gameboard_B);
+
+      const all_oppo_squares = document.querySelectorAll(".oppo_square");
+      all_oppo_squares.forEach((element) => {
+        element.removeEventListener("click", log_oppo_square);
+      });
+
+      // if the clicked square has already been clicked, try another one.
+
+      if (original_condition == 1 || original_condition == 3) {
+        prompt.textContent = `It's ${player_your.name} turn`;
+        oppo_board_listener();
+      } else {
+        prompt.textContent = `It's ${player_oppo.name} turn`;
+        your_board_listener();
       }
+    }
+
+    const oppo_board_listener = () => {
+      const all_oppo_squares = document.querySelectorAll(".oppo_square");
+      all_oppo_squares.forEach((element) => {
+        element.addEventListener("click", log_oppo_square);
+      });
     };
 
-    return { display_your_board, display_oppo_board };
+    const turn_controller = () => {
+      your_board_listener();
+    };
+
+    return {
+      display_your_board,
+      display_oppo_board,
+      Gameboard_A,
+      Gameboard_B,
+      turn_controller,
+    };
   })();
 
-  Game.display_your_board();
-  Game.display_oppo_board();
+  Game.display_your_board(Game.Gameboard_A);
+  Game.display_oppo_board(Game.Gameboard_B);
+  Game.Gameboard_A.receiveAttack(Square(1, 1));
+  Game.Gameboard_A.receiveAttack(Square(1, 10));
+  Game.Gameboard_A.receiveAttack(Square(10, 10));
+  Game.display_your_board(Game.Gameboard_A);
+
+  Game.Gameboard_B.receiveAttack(Square(1, 1));
+  Game.Gameboard_B.receiveAttack(Square(5, 1));
+  Game.display_oppo_board(Game.Gameboard_B);
+
+  Game.turn_controller();
 }
