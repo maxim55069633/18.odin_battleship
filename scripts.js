@@ -54,7 +54,7 @@ const Gameboard = () => {
       board_condition[(attack_square.x - 1) * 10 + attack_square.y - 1] = 1;
   };
 
-  return { board_condition, place_ships, receiveAttack };
+  return { board_condition, place_ships, receiveAttack, game_over };
 };
 
 const Player = (name = "Computer") => {
@@ -238,13 +238,32 @@ if (typeof module === "object") {
         element.removeEventListener("click", log_your_square);
       });
 
-      // if the clicked square has already been clicked, try another one.
-      if (original_condition == 1 || original_condition == 3) {
-        prompt.textContent = `It's ${player_oppo.name} turn`;
-        your_board_listener();
+      if (Gameboard_A.game_over()) {
+        prompt.innerHTML = "";
+        const outcome_line1 = document.createElement("p");
+        outcome_line1.textContent = "Congratulations!";
+        const outcome_line2 = document.createElement("p");
+        outcome_line2.textContent = "The winner is";
+        const outcome_line3 = document.createElement("p");
+        outcome_line3.textContent = "Opponent";
+
+        prompt.appendChild(outcome_line1);
+        prompt.appendChild(outcome_line2);
+        prompt.appendChild(outcome_line3);
       } else {
-        prompt.textContent = `It's ${player_your.name} turn`;
-        oppo_board_listener();
+        if (
+          original_condition == 1 ||
+          original_condition == 3 ||
+          original_condition == 2
+        ) {
+          // if the clicked square has already been clicked (original_condition is 1 or 3), try another one.
+          // when you do shoot a hidden ship square, shoot again.
+          prompt.textContent = `It's ${player_oppo.name} turn`;
+          your_board_listener();
+        } else {
+          prompt.textContent = `It's ${player_your.name} turn`;
+          oppo_board_listener();
+        }
       }
     }
 
@@ -277,14 +296,32 @@ if (typeof module === "object") {
         element.removeEventListener("click", log_oppo_square);
       });
 
-      // if the clicked square has already been clicked, try another one.
+      if (Gameboard_B.game_over()) {
+        prompt.innerHTML = "";
+        const outcome_line1 = document.createElement("p");
+        outcome_line1.textContent = "Congratulations!";
+        const outcome_line2 = document.createElement("p");
+        outcome_line2.textContent = "The winner is";
+        const outcome_line3 = document.createElement("p");
+        outcome_line3.textContent = "You";
 
-      if (original_condition == 1 || original_condition == 3) {
-        prompt.textContent = `It's ${player_your.name} turn`;
-        oppo_board_listener();
+        prompt.appendChild(outcome_line1);
+        prompt.appendChild(outcome_line2);
+        prompt.appendChild(outcome_line3);
       } else {
-        prompt.textContent = `It's ${player_oppo.name} turn`;
-        your_board_listener();
+        if (
+          original_condition == 1 ||
+          original_condition == 3 ||
+          original_condition == 2
+        ) {
+          // if the clicked square has already been clicked (original_condition is 1 or 3), try another one.
+          // when you do shoot a hidden ship square, shoot again.
+          prompt.textContent = `It's ${player_your.name} turn`;
+          oppo_board_listener();
+        } else {
+          prompt.textContent = `It's ${player_oppo.name} turn`;
+          your_board_listener();
+        }
       }
     }
 
@@ -296,6 +333,8 @@ if (typeof module === "object") {
     };
 
     const turn_controller = () => {
+      display_your_board(Game.Gameboard_A);
+      display_oppo_board(Game.Gameboard_B);
       your_board_listener();
     };
 
@@ -307,17 +346,6 @@ if (typeof module === "object") {
       turn_controller,
     };
   })();
-
-  Game.display_your_board(Game.Gameboard_A);
-  Game.display_oppo_board(Game.Gameboard_B);
-  Game.Gameboard_A.receiveAttack(Square(1, 1));
-  Game.Gameboard_A.receiveAttack(Square(1, 10));
-  Game.Gameboard_A.receiveAttack(Square(10, 10));
-  Game.display_your_board(Game.Gameboard_A);
-
-  Game.Gameboard_B.receiveAttack(Square(1, 1));
-  Game.Gameboard_B.receiveAttack(Square(5, 1));
-  Game.display_oppo_board(Game.Gameboard_B);
 
   Game.turn_controller();
 }
