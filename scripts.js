@@ -54,7 +54,18 @@ const Gameboard = () => {
       board_condition[(attack_square.x - 1) * 10 + attack_square.y - 1] = 1;
   };
 
-  return { board_condition, place_ships, receiveAttack, game_over };
+  const get_remaining_ships = () => {
+    return remaining_ships;
+  };
+
+  return {
+    board_condition,
+    place_ships,
+    receiveAttack,
+    game_over,
+    remaining_ships,
+    get_remaining_ships,
+  };
 };
 
 const Player = (name = "Computer") => {
@@ -62,7 +73,7 @@ const Player = (name = "Computer") => {
     rival_board.receiveAttack(target_square);
   };
 
-  const random_attack = (rival_board) => {
+  const choose_random_square = (rival_board) => {
     let mock_x;
     let mock_y;
     while (true) {
@@ -74,15 +85,17 @@ const Player = (name = "Computer") => {
         rival_board.board_condition[(mock_x - 1) * 10 + mock_y - 1] == 3
       )
         continue;
-      else {
-        rival_board.receiveAttack(Square(mock_x, mock_y));
-        break;
-      }
+      else break;
     }
     return Square(mock_x, mock_y);
   };
 
-  return { name, attack_rival, random_attack };
+  const random_attack = (rival_board) => {
+    const random_square = choose_random_square(rival_board);
+    rival_board.receiveAttack(random_square);
+  };
+
+  return { name, attack_rival, random_attack, choose_random_square };
 };
 
 // Check whether the scripts are run on Node or Browser.
@@ -215,28 +228,26 @@ if (typeof module === "object") {
     const player_oppo = Player();
     // player_human's gameboard is A, computer (or another player)'s gameboard is B.
 
-    function log_your_square(e) {
-      console.log(turn_record);
-      const prompt = document.querySelector(".prompt");
+    const computer_move = () => {
+      const target_square = player_oppo.choose_random_square(Gameboard_A);
 
-      const clicked_square = Square(
-        parseInt(e.target.id.split("your")[0]),
-        parseInt(e.target.id.split("your")[1])
-      );
+      const prompt_line2 = document.createElement("p");
 
       // 0 - blank, 1 - missed, 2 - hidden, 3 - shot
       const original_condition =
         Gameboard_A.board_condition[
-          (clicked_square.x - 1) * 10 + clicked_square.y - 1
+          (target_square.x - 1) * 10 + target_square.y - 1
         ];
-      Gameboard_A.receiveAttack(clicked_square);
-      display_your_board(Gameboard_A);
 
-      //After one click, cancel all the listener, wait for the other player's next move.
-      const all_your_squares = document.querySelectorAll(".your_square");
-      all_your_squares.forEach((element) => {
-        element.removeEventListener("click", log_your_square);
-      });
+      Gameboard_A.receiveAttack(target_square);
+
+      const prompt = document.querySelector(".prompt");
+      prompt.innerHTML = "";
+      const prompt_line1 = document.createElement("p");
+      prompt_line1.textContent = `Opponent's remaining ship squares are ${Gameboard_B.get_remaining_ships()}`;
+      prompt.appendChild(prompt_line1);
+
+      display_your_board(Gameboard_A);
 
       if (Gameboard_A.game_over()) {
         prompt.innerHTML = "";
@@ -257,26 +268,22 @@ if (typeof module === "object") {
           original_condition == 2
         ) {
           // if the clicked square has already been clicked (original_condition is 1 or 3), try another one.
-          // when you do shoot a hidden ship square, shoot again.
-          prompt.textContent = `It's ${player_oppo.name} turn`;
-          your_board_listener();
+          // when you do shoot a hidden ship square, shoot again. (original_condition is 2)
+
+          prompt_line2.textContent = `It's ${player_oppo.name} turn`;
+
+          prompt.appendChild(prompt_line2);
+          computer_move();
         } else {
-          prompt.textContent = `It's ${player_your.name} turn`;
+          prompt_line2.textContent = `It's ${player_your.name} turn`;
+          prompt.appendChild(prompt_line2);
           oppo_board_listener();
         }
       }
-    }
-
-    const your_board_listener = () => {
-      const all_your_squares = document.querySelectorAll(".your_square");
-      all_your_squares.forEach((element) => {
-        element.addEventListener("click", log_your_square);
-      });
     };
 
     function log_oppo_square(e) {
-      console.log(turn_record);
-      const prompt = document.querySelector(".prompt");
+      const prompt_line2 = document.createElement("p");
 
       const clicked_square = Square(
         parseInt(e.target.id.split("oppo")[0]),
@@ -289,6 +296,13 @@ if (typeof module === "object") {
           (clicked_square.x - 1) * 10 + clicked_square.y - 1
         ];
       Gameboard_B.receiveAttack(clicked_square);
+
+      const prompt = document.querySelector(".prompt");
+      prompt.innerHTML = "";
+      const prompt_line1 = document.createElement("p");
+      prompt_line1.textContent = `Opponent's remaining ship squares are ${Gameboard_B.get_remaining_ships()}`;
+      prompt.appendChild(prompt_line1);
+
       display_oppo_board(Gameboard_B);
 
       const all_oppo_squares = document.querySelectorAll(".oppo_square");
@@ -316,11 +330,15 @@ if (typeof module === "object") {
         ) {
           // if the clicked square has already been clicked (original_condition is 1 or 3), try another one.
           // when you do shoot a hidden ship square, shoot again.
-          prompt.textContent = `It's ${player_your.name} turn`;
+
+          prompt_line2.textContent = `It's ${player_your.name} turn`;
+          prompt.appendChild(prompt_line2);
+
           oppo_board_listener();
         } else {
-          prompt.textContent = `It's ${player_oppo.name} turn`;
-          your_board_listener();
+          prompt_line2.textContent = `It's ${player_oppo.name} turn`;
+          prompt.appendChild(prompt_line2);
+          computer_move();
         }
       }
     }
@@ -335,7 +353,7 @@ if (typeof module === "object") {
     const turn_controller = () => {
       display_your_board(Game.Gameboard_A);
       display_oppo_board(Game.Gameboard_B);
-      your_board_listener();
+      computer_move();
     };
 
     return {
