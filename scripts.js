@@ -10,12 +10,7 @@ const Ship = (length = 1, number_of_hits = 0) => {
     if (length <= number_of_hits) return true;
     else return false;
   };
-  const get_number_of_hits = () => {
-    return number_of_hits;
-  };
-  const get_length = () => {
-    return length;
-  };
+
   return { is_sunk, hit };
 };
 
@@ -26,6 +21,20 @@ const Gameboard = () => {
   // 3 represents shot.
 
   const board_condition = new Array(100).fill(0);
+
+  // the starting square of every ship
+  const potential_ship_squares = [
+    [], //ship_1
+    [], //ship_2
+    [], //ship_3
+    [], //ship_4
+    [], //ship_5
+    [], //ship_6
+    [], //ship_7
+    [], //ship_8
+    [], //ship_9
+    [], //ship_10
+  ];
 
   let remaining_ships = 20;
 
@@ -60,10 +69,10 @@ const Gameboard = () => {
 
   return {
     board_condition,
+    potential_ship_squares,
     place_ships,
     receiveAttack,
     game_over,
-    remaining_ships,
     get_remaining_ships,
   };
 };
@@ -103,34 +112,12 @@ if (typeof module === "object") {
   module.exports = { Square, Ship, Gameboard, Player };
 } else {
   const Game = (() => {
-    // turn_record can determine who should shoot on the current turn.
-    let turn_record = 0;
-
     // Create two Gameboards with predetermined coordinates and two Players(Humans and Computer)
     const Gameboard_A = Gameboard();
-    const A_all_ship_squares = [
-      Square(1, 1),
-      Square(2, 1),
-      Square(6, 1),
-      Square(7, 1),
-      Square(8, 1),
-      Square(9, 1),
-      Square(1, 3),
-      Square(5, 3),
-      Square(9, 4),
-      Square(10, 4),
-      Square(1, 5),
-      Square(1, 6),
-      Square(10, 6),
-      Square(1, 8),
-      Square(1, 9),
-      Square(1, 10),
-      Square(9, 8),
-      Square(6, 10),
-      Square(7, 10),
-      Square(8, 10),
-    ];
-    Gameboard_A.place_ships(A_all_ship_squares);
+
+    const initialize_Gameboard_A = () => {
+      Gameboard_A.place_ships(Gameboard_A.potential_ship_squares.flat(2));
+    };
 
     const Gameboard_B = Gameboard();
     const B_all_ship_squares = [
@@ -350,10 +337,182 @@ if (typeof module === "object") {
       });
     };
 
-    const turn_controller = () => {
-      display_your_board(Game.Gameboard_A);
-      display_oppo_board(Game.Gameboard_B);
-      computer_move();
+    function dragstart_handler(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+      ev.effectAllowed = "move";
+    }
+    function dragover_handler(ev) {
+      ev.preventDefault();
+    }
+
+    function dragend_handler(ev) {
+      ev.dataTransfer.clearData();
+    }
+
+    function drop_handler(ev) {
+      ev.preventDefault();
+      var id = ev.dataTransfer.getData("text");
+      const target_square = Square(
+        parseInt(ev.target.id.split("your")[0]),
+        parseInt(ev.target.id.split("your")[1])
+      );
+
+      // make sure every ship is placed within the board
+      if (id == "src_move_1" && target_square.x > 7) {
+        alert("Please place the ship within the board");
+      } else if (id == "src_move_2" && target_square.x > 8) {
+        alert("Please place the ship within the board");
+      } else if (id == "src_move_3" && target_square.y > 8) {
+        alert("Please place the ship within the board");
+      } else if (id == "src_move_4" && target_square.x > 9) {
+        alert("Please place the ship within the board");
+      } else if (id == "src_move_5" && target_square.x > 9) {
+        alert("Please place the ship within the board");
+      } else if (id == "src_move_6" && target_square.y > 9) {
+        alert("Please place the ship within the board");
+      } else ev.target.appendChild(document.getElementById(id));
+
+      if (id == "src_move_1") {
+        if (Gameboard_A.potential_ship_squares[0].length != 0)
+          Gameboard_A.potential_ship_squares[0].length = 0;
+        Gameboard_A.potential_ship_squares[0].push(target_square);
+        Gameboard_A.potential_ship_squares[0].push(
+          Square(target_square.x + 1, target_square.y)
+        );
+        Gameboard_A.potential_ship_squares[0].push(
+          Square(target_square.x + 2, target_square.y)
+        );
+        Gameboard_A.potential_ship_squares[0].push(
+          Square(target_square.x + 3, target_square.y)
+        );
+      } else if (id == "src_move_2") {
+        if (Gameboard_A.potential_ship_squares[1].length != 0)
+          Gameboard_A.potential_ship_squares[1].length = 0;
+        Gameboard_A.potential_ship_squares[1].push(target_square);
+        Gameboard_A.potential_ship_squares[1].push(
+          Square(target_square.x + 1, target_square.y)
+        );
+        Gameboard_A.potential_ship_squares[1].push(
+          Square(target_square.x + 2, target_square.y)
+        );
+      } else if (id == "src_move_3") {
+        if (Gameboard_A.potential_ship_squares[2].length != 0)
+          Gameboard_A.potential_ship_squares[2].length = 0;
+        Gameboard_A.potential_ship_squares[2].push(target_square);
+        Gameboard_A.potential_ship_squares[2].push(
+          Square(target_square.x, target_square.y + 1)
+        );
+        Gameboard_A.potential_ship_squares[2].push(
+          Square(target_square.x, target_square.y + 2)
+        );
+      } else if (id == "src_move_4") {
+        if (Gameboard_A.potential_ship_squares[3].length != 0)
+          Gameboard_A.potential_ship_squares[3].length = 0;
+        Gameboard_A.potential_ship_squares[3].push(target_square);
+        Gameboard_A.potential_ship_squares[3].push(
+          Square(target_square.x + 1, target_square.y)
+        );
+      } else if (id == "src_move_5") {
+        if (Gameboard_A.potential_ship_squares[4].length != 0)
+          Gameboard_A.potential_ship_squares[4].length = 0;
+        Gameboard_A.potential_ship_squares[4].push(target_square);
+        Gameboard_A.potential_ship_squares[4].push(
+          Square(target_square.x + 1, target_square.y)
+        );
+      } else if (id == "src_move_6") {
+        if (Gameboard_A.potential_ship_squares[5].length != 0)
+          Gameboard_A.potential_ship_squares[5].length = 0;
+        Gameboard_A.potential_ship_squares[5].push(target_square);
+        Gameboard_A.potential_ship_squares[5].push(
+          Square(target_square.x, target_square.y + 1)
+        );
+      } else if (id == "src_move_7") {
+        if (Gameboard_A.potential_ship_squares[6].length != 0)
+          Gameboard_A.potential_ship_squares[6].length = 0;
+
+        Gameboard_A.potential_ship_squares[6].push(target_square);
+      } else if (id == "src_move_8") {
+        if (Gameboard_A.potential_ship_squares[7].length != 0)
+          Gameboard_A.potential_ship_squares[7].length = 0;
+        Gameboard_A.potential_ship_squares[7].push(target_square);
+      } else if (id == "src_move_9") {
+        if (Gameboard_A.potential_ship_squares[8].length != 0)
+          Gameboard_A.potential_ship_squares[8].length = 0;
+        Gameboard_A.potential_ship_squares[8].push(target_square);
+      } else if (id == "src_move_10") {
+        if (Gameboard_A.potential_ship_squares[9].length != 0)
+          Gameboard_A.potential_ship_squares[9].length = 0;
+        Gameboard_A.potential_ship_squares[9].push(target_square);
+      }
+
+      console.log(Gameboard_A.potential_ship_squares);
+    }
+
+    const place_your_board = (your_grid) => {
+      const board_div = document.querySelector(".your_grid");
+      board_div.innerHTML = "";
+      for (let i = 1; i <= 10; i++) {
+        const board_row = document.createElement("div");
+        for (let j = 1; j <= 10; j++) {
+          const board_square = document.createElement("div");
+          board_square.setAttribute("id", `${i}your${j}`);
+          board_square.classList.add("board_square");
+
+          board_square.addEventListener("drop", drop_handler);
+          board_square.addEventListener("dragover", dragover_handler);
+
+          board_square.classList.add("your_square");
+          if (i == 1) {
+            board_square.classList.add(`board_column${j}`);
+          }
+
+          if (your_grid.board_condition[(i - 1) * 10 + j - 1] == 1) {
+            board_square.textContent = "ꞏ";
+            board_square.classList.add("ship_square_missed");
+          } else if (your_grid.board_condition[(i - 1) * 10 + j - 1] == 2)
+            board_square.classList.add("ship_square_hidden");
+          else if (your_grid.board_condition[(i - 1) * 10 + j - 1] == 3) {
+            board_square.textContent = "X";
+            board_square.classList.remove("ship_square_hidden");
+            board_square.classList.add("ship_square_shot");
+          }
+
+          board_row.appendChild(board_square);
+        }
+        board_row.classList.add("board_row");
+        board_row.classList.add(`board_row${i}`);
+
+        board_div.appendChild(board_row);
+      }
+    };
+
+    const game_on = () => {
+      place_your_board(Gameboard_A);
+
+      const all_ships = document.querySelectorAll(".ship");
+      all_ships.forEach((element) => {
+        element.addEventListener("dragstart", dragstart_handler);
+        element.addEventListener("dragend", dragend_handler);
+      });
+
+      const start_game_listener = document.querySelector(".start_the_game");
+      start_game_listener.addEventListener("click", () => {
+        let are_all_ships_placed = true;
+        let i = 0;
+        for (; i < 10; i++)
+          if (Gameboard_A.potential_ship_squares[i].length == 0) {
+            are_all_ships_placed = false;
+            i = 0;
+            break;
+          }
+        if (are_all_ships_placed && i == 10) {
+          initialize_Gameboard_A();
+
+          display_your_board(Gameboard_A);
+          display_oppo_board(Gameboard_B);
+          computer_move();
+        } else alert("Please place all your ships.");
+      });
     };
 
     return {
@@ -361,9 +520,9 @@ if (typeof module === "object") {
       display_oppo_board,
       Gameboard_A,
       Gameboard_B,
-      turn_controller,
+      game_on,
     };
   })();
 
-  Game.turn_controller();
+  Game.game_on();
 }

@@ -16,7 +16,26 @@
       </div>
 
       <div class="prompt">
-        <p>It's Opponent's turn</p>
+        <p>
+          Drag your ships to your grid. Only drag the topmost(for a vertical
+          ship) or leftmost(for a horizontal ship) square of the ship will work.
+        </p>
+        <p>The ships cannot overlap.</p>
+        <p>You can't place a ship next to another.</p>
+        <div class="drag_area">
+          <div class="ship" draggable="true" id="src_move_1"></div>
+          <div class="ship" draggable="true" id="src_move_2"></div>
+          <div class="ship" draggable="true" id="src_move_3"></div>
+          <div class="ship" draggable="true" id="src_move_4"></div>
+          <div class="ship" draggable="true" id="src_move_5"></div>
+          <div class="ship" draggable="true" id="src_move_6"></div>
+          <div class="ship" draggable="true" id="src_move_7"></div>
+          <div class="ship" draggable="true" id="src_move_8"></div>
+          <div class="ship" draggable="true" id="src_move_9"></div>
+          <div class="ship" draggable="true" id="src_move_10"></div>
+        </div>
+
+        <button class="start_the_game" type="button">Get your game on</button>
       </div>
 
       <div class="area_player_B">
@@ -25,11 +44,6 @@
       </div>
 
       <div class="info">
-        <p>
-          Every Player has 10 ships in total (20 squares). Each ship occupies a
-          number of consecutive squares on the grid, arranged either
-          horizontally or vertically. The ships cannot overlap.
-        </p>
         <p>
           Players alternate turns calling "shots" at the other player's ships
           (Click on a single square). Every time a player sinks his opponent's

@@ -24,11 +24,16 @@
   grid-row-end: 2;
 
   font-size: 20px;
+  padding-top: 50px;
 
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
+}
+
+.prompt p {
+  padding: 3px;
+  margin: 0;
 }
 
 .area_player_B {
@@ -52,6 +57,7 @@
   grid-row-end: 3;
 }
 
+/* board details */
 .board_row {
   display: flex;
   align-items: center;
@@ -60,13 +66,15 @@
 }
 
 .board_square {
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  outline: 1px solid rgba(0, 0, 0, 0.2);
   height: 25px;
   width: 25px;
 
   display: flex;
   align-items: center;
   justify-content: center;
+
+  position: relative;
 }
 
 .ship_square_missed {
@@ -74,14 +82,145 @@
 }
 
 .ship_square_hidden {
-  border: 1px solid #00f;
+  outline: 1px solid #00f;
   background-color: rgba(0, 0, 255, 0.1);
 }
 
 .ship_square_shot {
   color: red;
-  border: 1px solid #f00;
+  outline: 1px solid #f00;
   background-color: rgba(255, 0, 0, 0.2);
+}
+
+/* drag area  */
+.drag_area {
+  margin: 10px 0;
+
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+#src_move_1 {
+  height: 100px;
+  width: 25px;
+
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+#src_move_2 {
+  height: 75px;
+  width: 25px;
+
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+#src_move_3 {
+  height: 25px;
+  width: 75px;
+
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+#src_move_4 {
+  height: 50px;
+  width: 25px;
+
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+#src_move_5 {
+  height: 50px;
+  width: 25px;
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+#src_move_6 {
+  height: 25px;
+  width: 50px;
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+#src_move_7 {
+  height: 25px;
+  width: 25px;
+
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+#src_move_8 {
+  height: 25px;
+  width: 25px;
+
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+#src_move_9 {
+  height: 25px;
+  width: 25px;
+
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+#src_move_10 {
+  height: 25px;
+  width: 25px;
+
+  outline: 1px solid #00f;
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+/* So the width of each ship div wouldn't inherit from parent */
+
+div[id="src_move_3"] {
+  display: flex;
+  flex-direction: row;
+}
+
+div[id="src_move_6"] {
+  display: flex;
+  flex-direction: row;
+}
+
+.board_square div[id="src_move_1"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.board_square div[id="src_move_2"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.board_square div[id="src_move_3"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.board_square div[id="src_move_4"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.board_square div[id="src_move_5"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.board_square div[id="src_move_6"] {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 /* row and column title  */
