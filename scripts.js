@@ -323,29 +323,127 @@ if (typeof module === "object") {
     };
 
     const Gameboard_B = Gameboard();
-    const B_all_ship_squares = [
-      Square(5, 1),
-      Square(6, 1),
-      Square(9, 1),
-      Square(10, 1),
+    Gameboard_B.potential_ship_squares[0] = [Square(5, 1), Square(6, 1)];
+    Gameboard_B.adjacent_squares[0] = [
+      Square(4, 1),
+      Square(4, 2),
+      Square(5, 2),
+      Square(6, 2),
+      Square(7, 1),
+      Square(7, 2),
+    ];
+
+    Gameboard_B.potential_ship_squares[1] = [Square(9, 1), Square(10, 1)];
+    Gameboard_B.adjacent_squares[1] = [
+      Square(8, 1),
+      Square(8, 2),
+      Square(9, 2),
+      Square(10, 2),
+    ];
+    Gameboard_B.potential_ship_squares[2] = [
       Square(3, 3),
       Square(4, 3),
       Square(5, 3),
       Square(6, 3),
-      Square(10, 3),
-      Square(8, 4),
+    ];
+    Gameboard_B.adjacent_squares[2] = [
+      Square(2, 2),
+      Square(2, 3),
+      Square(2, 4),
+      Square(3, 2),
+      Square(3, 4),
+      Square(4, 2),
+      Square(4, 4),
+      Square(5, 2),
+      Square(5, 4),
+      Square(6, 2),
+      Square(6, 4),
+      Square(7, 2),
+      Square(7, 3),
+      Square(7, 4),
+    ];
+    Gameboard_B.potential_ship_squares[3] = [Square(10, 3)];
+    Gameboard_B.adjacent_squares[3] = [
+      Square(9, 2),
+      Square(9, 3),
+      Square(9, 4),
+      Square(10, 2),
+      Square(10, 4),
+    ];
+    Gameboard_B.potential_ship_squares[4] = [Square(8, 4)];
+    Gameboard_B.adjacent_squares[4] = [
+      Square(7, 3),
+      Square(7, 4),
+      Square(7, 5),
+      Square(8, 3),
+      Square(8, 5),
+      Square(9, 3),
+      Square(9, 4),
+      Square(9, 5),
+    ];
+    Gameboard_B.potential_ship_squares[5] = [
       Square(1, 6),
       Square(2, 6),
       Square(3, 6),
-      Square(6, 8),
-      Square(7, 8),
-      Square(2, 9),
-      Square(5, 10),
+    ];
+    Gameboard_B.adjacent_squares[5] = [
+      Square(1, 5),
+      Square(1, 7),
+      Square(2, 5),
+      Square(2, 7),
+      Square(3, 5),
+      Square(3, 7),
+      Square(4, 5),
+      Square(4, 6),
+      Square(4, 7),
+    ];
+    Gameboard_B.potential_ship_squares[6] = [Square(6, 8), Square(7, 8)];
+    Gameboard_B.adjacent_squares[6] = [
+      Square(5, 7),
+      Square(5, 8),
+      Square(5, 9),
+      Square(6, 7),
+      Square(6, 9),
+      Square(7, 7),
+      Square(7, 9),
+      Square(8, 7),
+      Square(8, 8),
+      Square(8, 9),
+    ];
+    Gameboard_B.potential_ship_squares[7] = [Square(2, 9)];
+    Gameboard_B.adjacent_squares[7] = [
+      Square(1, 8),
+      Square(1, 9),
+      Square(1, 10),
+      Square(2, 8),
+      Square(2, 10),
+      Square(3, 8),
+      Square(3, 9),
+      Square(3, 10),
+    ];
+    Gameboard_B.potential_ship_squares[8] = [Square(5, 10)];
+    Gameboard_B.adjacent_squares[8] = [
+      Square(4, 9),
+      Square(4, 10),
+      Square(5, 9),
+      Square(6, 9),
+      Square(6, 10),
+    ];
+    Gameboard_B.potential_ship_squares[9] = [
       Square(7, 10),
       Square(8, 10),
       Square(9, 10),
     ];
-    Gameboard_B.place_ships(B_all_ship_squares);
+    Gameboard_B.adjacent_squares[9] = [
+      Square(6, 9),
+      Square(6, 10),
+      Square(7, 9),
+      Square(8, 9),
+      Square(9, 9),
+      Square(10, 9),
+      Square(10, 10),
+    ];
+    Gameboard_B.place_ships(Gameboard_B.potential_ship_squares.flat(2));
 
     // gameboard
     const display_your_board = (your_grid) => {
@@ -437,6 +535,31 @@ if (typeof module === "object") {
       prompt_line1.textContent = `Opponent's remaining ship squares are ${Gameboard_B.get_remaining_ships()}`;
       prompt.appendChild(prompt_line1);
 
+      // detect if there is a ship sunk
+      for (
+        let i = 0, j = 0;
+        i < Gameboard_A.potential_ship_squares.length;
+        i++
+      ) {
+        for (; j < Gameboard_A.potential_ship_squares[i].length; j++)
+          if (
+            Gameboard_A.board_condition[
+              (Gameboard_A.potential_ship_squares[i][j].x - 1) * 10 +
+                Gameboard_A.potential_ship_squares[i][j].y -
+                1
+            ] != 3
+          )
+            break;
+        if (j == Gameboard_A.potential_ship_squares[i].length) {
+          Gameboard_A.adjacent_squares[i].forEach((element) => {
+            Gameboard_A.board_condition[
+              (element.x - 1) * 10 + element.y - 1
+            ] = 1;
+          });
+        }
+        j = 0;
+      }
+
       display_your_board(Gameboard_A);
 
       if (Gameboard_A.game_over()) {
@@ -493,7 +616,34 @@ if (typeof module === "object") {
       prompt_line1.textContent = `Opponent's remaining ship squares are ${Gameboard_B.get_remaining_ships()}`;
       prompt.appendChild(prompt_line1);
 
+      // detect if there is a ship sunk
+      for (
+        let i = 0, j = 0;
+        i < Gameboard_B.potential_ship_squares.length;
+        i++
+      ) {
+        for (; j < Gameboard_B.potential_ship_squares[i].length; j++)
+          if (
+            Gameboard_B.board_condition[
+              (Gameboard_B.potential_ship_squares[i][j].x - 1) * 10 +
+                Gameboard_B.potential_ship_squares[i][j].y -
+                1
+            ] != 3
+          )
+            break;
+        if (j == Gameboard_B.potential_ship_squares[i].length) {
+          Gameboard_B.adjacent_squares[i].forEach((element) => {
+            Gameboard_B.board_condition[
+              (element.x - 1) * 10 + element.y - 1
+            ] = 1;
+          });
+        }
+        j = 0;
+      }
       display_oppo_board(Gameboard_B);
+
+      console.log(Gameboard_B.potential_ship_squares);
+      console.log(Gameboard_B.adjacent_squares);
 
       const all_oppo_squares = document.querySelectorAll(".oppo_square");
       all_oppo_squares.forEach((element) => {
@@ -564,7 +714,6 @@ if (typeof module === "object") {
         // parseInt(ev.target.id.split("your")[0]),
         // parseInt(ev.target.id.split("your")[1])
       );
-      console.log(`target_square: ${target_square.x}, ${target_square.y}`);
 
       if (id == "src_move_1") {
         // First push squares in ship_1
@@ -732,13 +881,6 @@ if (typeof module === "object") {
         ship_array_number,
         all_ships_squares
       ) => {
-        console.log(`all_ships_squares: `);
-        all_ships_squares.forEach((element) => {
-          console.log(`${element.x}, ${element.y} `);
-        });
-        console.log(`Adjacent_squares: `);
-        console.log(Gameboard_A.adjacent_squares[ship_array_number]);
-
         let existance = false;
         for (let i = 0; i < all_ships_squares.length; i++) {
           for (
@@ -782,11 +924,6 @@ if (typeof module === "object") {
       // check if the drop event succeeds
       Gameboard_A.place_ship_status[ship_array_number] =
         ev.target.hasChildNodes();
-
-      console.log(`potential_ship_squares: `);
-      console.log(Gameboard_A.potential_ship_squares);
-      console.log(`adjacent_squares:`);
-      console.log(Gameboard_A.adjacent_squares);
       if (!Gameboard_A.place_ship_status[ship_array_number]) {
         Gameboard_A.potential_ship_squares[ship_array_number].length = 0;
         Gameboard_A.adjacent_squares[ship_array_number].length = 0;
