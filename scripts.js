@@ -14,6 +14,40 @@ const Ship = (length = 1, number_of_hits = 0) => {
   return { is_sunk, hit };
 };
 
+function eliminate_duplication(a, b) {
+  if (a.length == 0) return b;
+
+  // add the first element of array a to array b
+  for (let i = 0, j = 0; i < a.length; i++) {
+    for (; j < b.length; j++) if (a[i].x == b[j].x && a[i].y == b[j].y) break;
+    if (j == b.length) {
+      b.push(a[i]);
+      a.splice(i, 1);
+      break;
+    } else {
+      a.splice(i, 1);
+      break;
+    }
+  }
+
+  return eliminate_duplication(a, b);
+}
+
+function reduce_difference_and_duplication(a, b) {
+  const difference_array = [];
+  for (let i = 0, j = 0; i < a.length; i++) {
+    for (; j < b.length; j++) {
+      if (a[i].x == b[j].x && a[i].y == b[j].y) break;
+    }
+    if (j == b.length) difference_array.push(a[i]);
+    j = 0;
+  }
+
+  const modified_array = eliminate_duplication(difference_array, []);
+
+  return modified_array;
+}
+
 const Gameboard = () => {
   // 0 represents blank.
   // 1 represents missed.
@@ -23,18 +57,182 @@ const Gameboard = () => {
   const board_condition = new Array(100).fill(0);
 
   // the starting square of every ship
-  const potential_ship_squares = [
-    [], //ship_1
-    [], //ship_2
-    [], //ship_3
-    [], //ship_4
-    [], //ship_5
-    [], //ship_6
-    [], //ship_7
-    [], //ship_8
-    [], //ship_9
-    [], //ship_10
+  const potential_ship_squares = [[], [], [], [], [], [], [], [], [], []];
+
+  // This variable is used to check whether the drop event succeeds.
+  const place_ship_status = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
   ];
+
+  const adjacent_squares = [[], [], [], [], [], [], [], [], [], []];
+
+  const identify_adjacent_squares = (ship_square, ship_number) => {
+    // Array's index starts from 0
+    const ship_number_array = ship_number - 1;
+    //  (1,1)
+    if (ship_square.x == 1 && ship_square.y == 1) {
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y + 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y + 1)
+      );
+      // (10,1)
+    } else if (ship_square.x == 10 && ship_square.y == 1) {
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y + 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y + 1)
+      );
+      // (1,10)
+    } else if (ship_square.x == 1 && ship_square.y == 10) {
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y)
+      );
+      // (10,10)
+    } else if (ship_square.x == 10 && ship_square.y == 10) {
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y - 1)
+      );
+    }
+    //  (x,1) (1<x<10)
+    else if (ship_square.y == 1) {
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y + 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y + 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y + 1)
+      );
+      // (10,x) (1<x<10)
+    } else if (ship_square.x == 10) {
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y + 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y + 1)
+      );
+    }
+    // (1,x)  (1<x<10)
+    else if (ship_square.x == 1) {
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y + 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y + 1)
+      );
+    }
+    // (x,10) (1<x<10)
+    else if (ship_square.y == 10) {
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y)
+      );
+    }
+    // (x,y) ( 1<x<10  , 1<y<10)
+    else {
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x - 1, ship_square.y + 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x, ship_square.y + 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y - 1)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y)
+      );
+      adjacent_squares[ship_number_array].push(
+        Square(ship_square.x + 1, ship_square.y + 1)
+      );
+    }
+  };
+
+  const delete_repeated_squares_in_adjacent_squares = (ship_number) => {
+    const ship_number_array = ship_number - 1;
+    const array_1 = structuredClone(adjacent_squares[ship_number_array]);
+    const array_2 = structuredClone(potential_ship_squares[ship_number_array]);
+
+    adjacent_squares[ship_number_array] = reduce_difference_and_duplication(
+      array_1,
+      array_2
+    );
+  };
 
   let remaining_ships = 20;
 
@@ -70,6 +268,11 @@ const Gameboard = () => {
   return {
     board_condition,
     potential_ship_squares,
+    adjacent_squares,
+    place_ship_status,
+    identify_adjacent_squares,
+    delete_repeated_squares_in_adjacent_squares,
+
     place_ships,
     receiveAttack,
     game_over,
@@ -353,26 +556,18 @@ if (typeof module === "object") {
       ev.preventDefault();
       var id = ev.dataTransfer.getData("text");
       const target_square = Square(
-        parseInt(ev.target.id.split("your")[0]),
-        parseInt(ev.target.id.split("your")[1])
-      );
+        parseInt(this.id.split("your")[0]),
+        parseInt(this.id.split("your")[1])
+        // difference between event.target and this
+        // Because only square behind the ship block has drop listener. “this” can capture the drop event.
 
-      // make sure every ship is placed within the board
-      if (id == "src_move_1" && target_square.x > 7) {
-        alert("Please place the ship within the board");
-      } else if (id == "src_move_2" && target_square.x > 8) {
-        alert("Please place the ship within the board");
-      } else if (id == "src_move_3" && target_square.y > 8) {
-        alert("Please place the ship within the board");
-      } else if (id == "src_move_4" && target_square.x > 9) {
-        alert("Please place the ship within the board");
-      } else if (id == "src_move_5" && target_square.x > 9) {
-        alert("Please place the ship within the board");
-      } else if (id == "src_move_6" && target_square.y > 9) {
-        alert("Please place the ship within the board");
-      } else ev.target.appendChild(document.getElementById(id));
+        // parseInt(ev.target.id.split("your")[0]),
+        // parseInt(ev.target.id.split("your")[1])
+      );
+      console.log(`target_square: ${target_square.x}, ${target_square.y}`);
 
       if (id == "src_move_1") {
+        // First push squares in ship_1
         if (Gameboard_A.potential_ship_squares[0].length != 0)
           Gameboard_A.potential_ship_squares[0].length = 0;
         Gameboard_A.potential_ship_squares[0].push(target_square);
@@ -385,6 +580,13 @@ if (typeof module === "object") {
         Gameboard_A.potential_ship_squares[0].push(
           Square(target_square.x + 3, target_square.y)
         );
+        // Second, identify adjacent squares
+        if (Gameboard_A.adjacent_squares[0].length != 0)
+          Gameboard_A.adjacent_squares[0].length = 0;
+        Gameboard_A.potential_ship_squares[0].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 1);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(1);
       } else if (id == "src_move_2") {
         if (Gameboard_A.potential_ship_squares[1].length != 0)
           Gameboard_A.potential_ship_squares[1].length = 0;
@@ -395,6 +597,13 @@ if (typeof module === "object") {
         Gameboard_A.potential_ship_squares[1].push(
           Square(target_square.x + 2, target_square.y)
         );
+
+        if (Gameboard_A.adjacent_squares[1].length != 0)
+          Gameboard_A.adjacent_squares[1].length = 0;
+        Gameboard_A.potential_ship_squares[1].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 2);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(2);
       } else if (id == "src_move_3") {
         if (Gameboard_A.potential_ship_squares[2].length != 0)
           Gameboard_A.potential_ship_squares[2].length = 0;
@@ -405,6 +614,13 @@ if (typeof module === "object") {
         Gameboard_A.potential_ship_squares[2].push(
           Square(target_square.x, target_square.y + 2)
         );
+
+        if (Gameboard_A.adjacent_squares[2].length != 0)
+          Gameboard_A.adjacent_squares[2].length = 0;
+        Gameboard_A.potential_ship_squares[2].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 3);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(3);
       } else if (id == "src_move_4") {
         if (Gameboard_A.potential_ship_squares[3].length != 0)
           Gameboard_A.potential_ship_squares[3].length = 0;
@@ -412,6 +628,13 @@ if (typeof module === "object") {
         Gameboard_A.potential_ship_squares[3].push(
           Square(target_square.x + 1, target_square.y)
         );
+
+        if (Gameboard_A.adjacent_squares[3].length != 0)
+          Gameboard_A.adjacent_squares[3].length = 0;
+        Gameboard_A.potential_ship_squares[3].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 4);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(4);
       } else if (id == "src_move_5") {
         if (Gameboard_A.potential_ship_squares[4].length != 0)
           Gameboard_A.potential_ship_squares[4].length = 0;
@@ -419,6 +642,13 @@ if (typeof module === "object") {
         Gameboard_A.potential_ship_squares[4].push(
           Square(target_square.x + 1, target_square.y)
         );
+
+        if (Gameboard_A.adjacent_squares[4].length != 0)
+          Gameboard_A.adjacent_squares[4].length = 0;
+        Gameboard_A.potential_ship_squares[4].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 5);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(5);
       } else if (id == "src_move_6") {
         if (Gameboard_A.potential_ship_squares[5].length != 0)
           Gameboard_A.potential_ship_squares[5].length = 0;
@@ -426,26 +656,141 @@ if (typeof module === "object") {
         Gameboard_A.potential_ship_squares[5].push(
           Square(target_square.x, target_square.y + 1)
         );
+
+        if (Gameboard_A.adjacent_squares[5].length != 0)
+          Gameboard_A.adjacent_squares[5].length = 0;
+        Gameboard_A.potential_ship_squares[5].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 6);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(6);
       } else if (id == "src_move_7") {
         if (Gameboard_A.potential_ship_squares[6].length != 0)
           Gameboard_A.potential_ship_squares[6].length = 0;
 
         Gameboard_A.potential_ship_squares[6].push(target_square);
+
+        if (Gameboard_A.adjacent_squares[6].length != 0)
+          Gameboard_A.adjacent_squares[6].length = 0;
+        Gameboard_A.potential_ship_squares[6].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 7);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(7);
       } else if (id == "src_move_8") {
         if (Gameboard_A.potential_ship_squares[7].length != 0)
           Gameboard_A.potential_ship_squares[7].length = 0;
         Gameboard_A.potential_ship_squares[7].push(target_square);
+
+        if (Gameboard_A.adjacent_squares[7].length != 0)
+          Gameboard_A.adjacent_squares[7].length = 0;
+        Gameboard_A.potential_ship_squares[7].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 8);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(8);
       } else if (id == "src_move_9") {
         if (Gameboard_A.potential_ship_squares[8].length != 0)
           Gameboard_A.potential_ship_squares[8].length = 0;
         Gameboard_A.potential_ship_squares[8].push(target_square);
+
+        if (Gameboard_A.adjacent_squares[8].length != 0)
+          Gameboard_A.adjacent_squares[8].length = 0;
+        Gameboard_A.potential_ship_squares[8].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 9);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(9);
       } else if (id == "src_move_10") {
         if (Gameboard_A.potential_ship_squares[9].length != 0)
           Gameboard_A.potential_ship_squares[9].length = 0;
         Gameboard_A.potential_ship_squares[9].push(target_square);
+
+        if (Gameboard_A.adjacent_squares[9].length != 0)
+          Gameboard_A.adjacent_squares[9].length = 0;
+        Gameboard_A.potential_ship_squares[9].forEach((element) => {
+          Gameboard_A.identify_adjacent_squares(element, 10);
+        });
+        Gameboard_A.delete_repeated_squares_in_adjacent_squares(10);
       }
 
+      const ship_array_number = parseInt(id.split("_")[2]) - 1;
+
+      const all_ships_squares = eliminate_duplication(
+        [].concat(
+          Gameboard_A.potential_ship_squares[0],
+          Gameboard_A.potential_ship_squares[1],
+          Gameboard_A.potential_ship_squares[2],
+          Gameboard_A.potential_ship_squares[3],
+          Gameboard_A.potential_ship_squares[4],
+          Gameboard_A.potential_ship_squares[5],
+          Gameboard_A.potential_ship_squares[6],
+          Gameboard_A.potential_ship_squares[7],
+          Gameboard_A.potential_ship_squares[8],
+          Gameboard_A.potential_ship_squares[9]
+        ),
+        []
+      );
+
+      const are_adjacent_squares_in_ship_squares = (
+        ship_array_number,
+        all_ships_squares
+      ) => {
+        console.log(`all_ships_squares: `);
+        all_ships_squares.forEach((element) => {
+          console.log(`${element.x}, ${element.y} `);
+        });
+        console.log(`Adjacent_squares: `);
+        console.log(Gameboard_A.adjacent_squares[ship_array_number]);
+
+        let existance = false;
+        for (let i = 0; i < all_ships_squares.length; i++) {
+          for (
+            let j = 0;
+            j < Gameboard_A.adjacent_squares[ship_array_number].length;
+            j++
+          )
+            if (
+              all_ships_squares[i].x ==
+                Gameboard_A.adjacent_squares[ship_array_number][j].x &&
+              all_ships_squares[i].y ==
+                Gameboard_A.adjacent_squares[ship_array_number][j].y
+            ) {
+              existance = true;
+            }
+        }
+        return existance;
+      };
+
+      if (
+        !are_adjacent_squares_in_ship_squares(
+          ship_array_number,
+          all_ships_squares
+        )
+      )
+        if (id == "src_move_1" && target_square.x > 7) {
+          // make sure every ship is placed within the board
+          alert("Please place the ship within the board");
+        } else if (id == "src_move_2" && target_square.x > 8) {
+          alert("Please place the ship within the board");
+        } else if (id == "src_move_3" && target_square.y > 8) {
+          alert("Please place the ship within the board");
+        } else if (id == "src_move_4" && target_square.x > 9) {
+          alert("Please place the ship within the board");
+        } else if (id == "src_move_5" && target_square.x > 9) {
+          alert("Please place the ship within the board");
+        } else if (id == "src_move_6" && target_square.y > 9) {
+          alert("Please place the ship within the board");
+        } else ev.target.appendChild(document.getElementById(id));
+
+      // check if the drop event succeeds
+      Gameboard_A.place_ship_status[ship_array_number] =
+        ev.target.hasChildNodes();
+
+      console.log(`potential_ship_squares: `);
       console.log(Gameboard_A.potential_ship_squares);
+      console.log(`adjacent_squares:`);
+      console.log(Gameboard_A.adjacent_squares);
+      if (!Gameboard_A.place_ship_status[ship_array_number]) {
+        Gameboard_A.potential_ship_squares[ship_array_number].length = 0;
+        Gameboard_A.adjacent_squares[ship_array_number].length = 0;
+      }
     }
 
     const place_your_board = (your_grid) => {
@@ -464,17 +809,6 @@ if (typeof module === "object") {
           board_square.classList.add("your_square");
           if (i == 1) {
             board_square.classList.add(`board_column${j}`);
-          }
-
-          if (your_grid.board_condition[(i - 1) * 10 + j - 1] == 1) {
-            board_square.textContent = "ꞏ";
-            board_square.classList.add("ship_square_missed");
-          } else if (your_grid.board_condition[(i - 1) * 10 + j - 1] == 2)
-            board_square.classList.add("ship_square_hidden");
-          else if (your_grid.board_condition[(i - 1) * 10 + j - 1] == 3) {
-            board_square.textContent = "X";
-            board_square.classList.remove("ship_square_hidden");
-            board_square.classList.add("ship_square_shot");
           }
 
           board_row.appendChild(board_square);
@@ -505,7 +839,7 @@ if (typeof module === "object") {
             i = 0;
             break;
           }
-        if (are_all_ships_placed && i == 10) {
+        if (i == 10 && !Gameboard_A.place_ship_status.includes(false)) {
           initialize_Gameboard_A();
 
           display_your_board(Gameboard_A);
