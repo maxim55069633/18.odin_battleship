@@ -281,6 +281,8 @@ const Gameboard = () => {
 };
 
 const Player = (name = "Computer") => {
+  const attack_record = [];
+
   const attack_rival = (rival_board, target_square) => {
     rival_board.receiveAttack(target_square);
   };
@@ -307,7 +309,13 @@ const Player = (name = "Computer") => {
     rival_board.receiveAttack(random_square);
   };
 
-  return { name, attack_rival, random_attack, choose_random_square };
+  return {
+    name,
+    attack_record,
+    attack_rival,
+    random_attack,
+    choose_random_square,
+  };
 };
 
 // Check whether the scripts are run on Node or Browser.
@@ -516,8 +524,274 @@ if (typeof module === "object") {
     const player_oppo = Player();
     // player_human's gameboard is A, computer (or another player)'s gameboard is B.
 
+    const find_a_nearby_square = () => {
+      console.log("find_a_nearby_square");
+      let index_of_record = 0;
+      let previous_shot = player_oppo.attack_record[index_of_record];
+      let target_square;
+
+      let record_direction = "vertical";
+      if (player_oppo.attack_record.length >= 2) {
+        if (player_oppo.attack_record[0].x == player_oppo.attack_record[1].x)
+          record_direction = "horizontal";
+
+        // if we can identify the direction of the hidden ship, no need to try another direction
+
+        if (record_direction == "vertical")
+          while (index_of_record < player_oppo.attack_record.length) {
+            if (previous_shot.x < 10) {
+              if (
+                Gameboard_A.board_condition[
+                  (previous_shot.x + 1 - 1) * 10 + previous_shot.y - 1
+                ] == 2
+              ) {
+                // if the hidden ship will be shot, record this move
+
+                target_square = Square(previous_shot.x + 1, previous_shot.y);
+
+                player_oppo.attack_record.push(target_square);
+                console.log("try square beneath");
+                return target_square;
+              } else if (
+                Gameboard_A.board_condition[
+                  (previous_shot.x + 1 - 1) * 10 + previous_shot.y - 1
+                ] == 0
+              ) {
+                target_square = Square(previous_shot.x + 1, previous_shot.y);
+
+                console.log("try square beneath");
+                return target_square;
+              }
+            }
+            if (previous_shot.x > 1) {
+              if (
+                Gameboard_A.board_condition[
+                  (previous_shot.x - 1 - 1) * 10 + previous_shot.y - 1
+                ] == 2
+              ) {
+                // if the hidden ship will be shot, record this move
+                target_square = Square(previous_shot.x - 1, previous_shot.y);
+
+                player_oppo.attack_record.push(target_square);
+                console.log("try square above");
+                return target_square;
+              } else if (
+                Gameboard_A.board_condition[
+                  (previous_shot.x - 1 - 1) * 10 + previous_shot.y - 1
+                ] == 0
+              ) {
+                target_square = Square(previous_shot.x - 1, previous_shot.y);
+
+                console.log("try square above");
+                return target_square;
+              }
+            }
+
+            console.log("before shift: player_oppo.attack_record");
+            player_oppo.attack_record.forEach((element) => {
+              console.log(`${element.x}, ${element.y}`);
+            });
+            player_oppo.attack_record.shift();
+
+            console.log("after shift: player_oppo.attack_record");
+            player_oppo.attack_record.forEach((element) => {
+              console.log(`${element.x}, ${element.y}`);
+            });
+            previous_shot = player_oppo.attack_record[index_of_record];
+          }
+        else {
+          // try horizontal direction
+          while (index_of_record < player_oppo.attack_record.length) {
+            if (previous_shot.y < 10) {
+              if (
+                Gameboard_A.board_condition[
+                  (previous_shot.x - 1) * 10 + previous_shot.y + 1 - 1
+                ] == 2
+              ) {
+                // if the hidden ship will be shot, record this move
+
+                target_square = Square(previous_shot.x, previous_shot.y + 1);
+
+                player_oppo.attack_record.push(target_square);
+                console.log("try right square");
+                return target_square;
+              } else if (
+                Gameboard_A.board_condition[
+                  (previous_shot.x - 1) * 10 + previous_shot.y + 1 - 1
+                ] == 0
+              ) {
+                // if the blank square will be shot, don't record this move
+
+                target_square = Square(previous_shot.x, previous_shot.y + 1);
+                console.log("try right square");
+                return target_square;
+              }
+            }
+
+            if (previous_shot.y > 1) {
+              if (
+                Gameboard_A.board_condition[
+                  (previous_shot.x - 1) * 10 + previous_shot.y - 1 - 1
+                ] == 2
+              ) {
+                // if the hidden ship will be shot, record this move
+                target_square = Square(previous_shot.x, previous_shot.y - 1);
+
+                player_oppo.attack_record.push(target_square);
+                console.log("try left square");
+                return target_square;
+              } else if (
+                Gameboard_A.board_condition[
+                  (previous_shot.x - 1) * 10 + previous_shot.y - 1 - 1
+                ] == 0
+              ) {
+                target_square = Square(previous_shot.x, previous_shot.y - 1);
+
+                console.log("try left square");
+                return target_square;
+              }
+            }
+
+            console.log("before shift: player_oppo.attack_record");
+            player_oppo.attack_record.forEach((element) => {
+              console.log(`${element.x}, ${element.y}`);
+            });
+            player_oppo.attack_record.shift();
+
+            console.log("after shift: player_oppo.attack_record");
+            player_oppo.attack_record.forEach((element) => {
+              console.log(`${element.x}, ${element.y}`);
+            });
+            previous_shot = player_oppo.attack_record[index_of_record];
+          }
+        }
+      }
+
+      while (index_of_record < player_oppo.attack_record.length) {
+        if (previous_shot.y < 10) {
+          if (
+            Gameboard_A.board_condition[
+              (previous_shot.x - 1) * 10 + previous_shot.y + 1 - 1
+            ] == 2
+          ) {
+            // if the hidden ship will be shot, record this move
+
+            target_square = Square(previous_shot.x, previous_shot.y + 1);
+
+            player_oppo.attack_record.push(target_square);
+            console.log("try right square");
+            return target_square;
+          } else if (
+            Gameboard_A.board_condition[
+              (previous_shot.x - 1) * 10 + previous_shot.y + 1 - 1
+            ] == 0
+          ) {
+            // if the blank square will be shot, don't record this move
+
+            target_square = Square(previous_shot.x, previous_shot.y + 1);
+            console.log("try right square");
+            return target_square;
+          }
+        }
+        if (previous_shot.x < 10) {
+          if (
+            Gameboard_A.board_condition[
+              (previous_shot.x + 1 - 1) * 10 + previous_shot.y - 1
+            ] == 2
+          ) {
+            // if the hidden ship will be shot, record this move
+
+            target_square = Square(previous_shot.x + 1, previous_shot.y);
+
+            player_oppo.attack_record.push(target_square);
+            console.log("try square beneath");
+            return target_square;
+          } else if (
+            Gameboard_A.board_condition[
+              (previous_shot.x + 1 - 1) * 10 + previous_shot.y - 1
+            ] == 0
+          ) {
+            target_square = Square(previous_shot.x + 1, previous_shot.y);
+
+            console.log("try square beneath");
+            return target_square;
+          }
+        }
+        if (previous_shot.y > 1) {
+          if (
+            Gameboard_A.board_condition[
+              (previous_shot.x - 1) * 10 + previous_shot.y - 1 - 1
+            ] == 2
+          ) {
+            // if the hidden ship will be shot, record this move
+            target_square = Square(previous_shot.x, previous_shot.y - 1);
+
+            player_oppo.attack_record.push(target_square);
+            console.log("try left square");
+            return target_square;
+          } else if (
+            Gameboard_A.board_condition[
+              (previous_shot.x - 1) * 10 + previous_shot.y - 1 - 1
+            ] == 0
+          ) {
+            target_square = Square(previous_shot.x, previous_shot.y - 1);
+
+            console.log("try left square");
+            return target_square;
+          }
+        }
+        if (previous_shot.x > 1) {
+          if (
+            Gameboard_A.board_condition[
+              (previous_shot.x - 1 - 1) * 10 + previous_shot.y - 1
+            ] == 2
+          ) {
+            // if the hidden ship will be shot, record this move
+            target_square = Square(previous_shot.x - 1, previous_shot.y);
+
+            player_oppo.attack_record.push(target_square);
+            console.log("try square above");
+            return target_square;
+          } else if (
+            Gameboard_A.board_condition[
+              (previous_shot.x - 1 - 1) * 10 + previous_shot.y - 1
+            ] == 0
+          ) {
+            target_square = Square(previous_shot.x - 1, previous_shot.y);
+
+            console.log("try square above");
+            return target_square;
+          }
+        }
+
+        console.log("before shift: player_oppo.attack_record");
+        player_oppo.attack_record.forEach((element) => {
+          console.log(`${element.x}, ${element.y}`);
+        });
+        player_oppo.attack_record.shift();
+
+        console.log("after shift: player_oppo.attack_record");
+        player_oppo.attack_record.forEach((element) => {
+          console.log(`${element.x}, ${element.y}`);
+        });
+        previous_shot = player_oppo.attack_record[index_of_record];
+      }
+      // Fail to find a possible shot position
+      player_oppo.attack_record.length = 0;
+
+      // record the random shot
+      target_square = player_oppo.choose_random_square(Gameboard_A);
+      return target_square;
+    };
+
     const computer_move = () => {
-      const target_square = player_oppo.choose_random_square(Gameboard_A);
+      let target_square;
+      if (player_oppo.attack_record.length != 0) {
+        // If we shot a hidden ship square in the previous turn, find next shoot next to it
+        target_square = find_a_nearby_square();
+      } else target_square = player_oppo.choose_random_square(Gameboard_A);
+
+      console.log(`current move is ${target_square.x}, ${target_square.y}`);
 
       const prompt_line2 = document.createElement("p");
 
@@ -526,6 +800,9 @@ if (typeof module === "object") {
         Gameboard_A.board_condition[
           (target_square.x - 1) * 10 + target_square.y - 1
         ];
+
+      if (original_condition == 2 && player_oppo.attack_record.length == 0)
+        player_oppo.attack_record.push(target_square);
 
       Gameboard_A.receiveAttack(target_square);
 
@@ -551,6 +828,7 @@ if (typeof module === "object") {
           )
             break;
         if (j == Gameboard_A.potential_ship_squares[i].length) {
+          // if the player sinks a ship, he will make a random shot
           Gameboard_A.adjacent_squares[i].forEach((element) => {
             Gameboard_A.board_condition[
               (element.x - 1) * 10 + element.y - 1
@@ -641,9 +919,6 @@ if (typeof module === "object") {
         j = 0;
       }
       display_oppo_board(Gameboard_B);
-
-      console.log(Gameboard_B.potential_ship_squares);
-      console.log(Gameboard_B.adjacent_squares);
 
       const all_oppo_squares = document.querySelectorAll(".oppo_square");
       all_oppo_squares.forEach((element) => {
